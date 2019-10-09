@@ -9,7 +9,8 @@ import io
 app = Flask(__name__)
 
 UPLOAD_FOLDER = os.path.join(app.instance_path, 'uploads')
-ALLOWED_EXTENSIONS = set(['pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+MIME_TYPES={'png':'image/png','jpg':'image/jpeg','jpeg':'image/jpeg','gif':'image/gif'}
 print(UPLOAD_FOLDER)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -21,6 +22,9 @@ def allowed_file(filename):
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
+        ext="png"
+        if request.form.get("ext") in ALLOWED_EXTENSIONS:
+            ext=request.form.get("ext")
         if 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
@@ -34,24 +38,27 @@ def upload_file():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('uploaded_file',
-                                    filename=filename))
+                                    filename=filename,ext=ext))
     return '''
     <!doctype html>
     <title>Upload new File</title>
     <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="file"/>
+      <input type="text" name="ext" value="png"/>
+      <input type="submit" value="Upload"/>
     </form>
     '''
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
+@app.route('/uploads/<filename>/<ext>')
+def uploaded_file(filename, ext):
         try:
+            if ext not in ALLOWED_EXTENSIONS:
+                ext='png'
             new_image = pyvips.Image.thumbnail(os.path.join(app.config['UPLOAD_FOLDER'],filename), 400, height=400)
-            new_filename = os.path.join(app.config['UPLOAD_FOLDER'],'thumb'+filename)
+            new_filename = os.path.join(app.config['UPLOAD_FOLDER'],'thumb%s.%s' % (filename.split('.')[0], ext))
             new_image.write_to_file(new_filename)
-            return send_file(new_filename, mimetype='image/jpeg')
+            return send_file(new_filename, mimetype=MIME_TYPES[ext])
         except Exception as e:
             return '''
             <!doctype html>
