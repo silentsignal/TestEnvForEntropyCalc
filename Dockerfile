@@ -38,6 +38,7 @@ WORKDIR /app/leakphp
 
 RUN composer install
 RUN cp 000-default.conf /etc/apache2/sites-available/
+RUN cp mpm_prefork.conf /etc/apache2/mods-available/
 
 WORKDIR /app/leakjs
 
@@ -49,4 +50,4 @@ EXPOSE 8085
 EXPOSE 8099
 EXPOSE 80
 
-CMD ["service apache2 start","./restart.sh"]
+CMD ["./restart.sh"]
