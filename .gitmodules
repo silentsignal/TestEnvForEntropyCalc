@@ -1,6 +1,0 @@
-[submodule "leakjs"]
-	path = leakjs
-	url = https://github.com/v-p-b/leakjs
-[submodule "leakphp"]
-	path = leakphp
-	url = https://github.com/v-p-b/leakphp
